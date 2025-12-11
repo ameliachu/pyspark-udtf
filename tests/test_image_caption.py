@@ -17,13 +17,29 @@ def test_eval_buffering(udtf_instance):
     assert len(results1) == 0
     assert len(udtf_instance.buffer) == 1
     assert udtf_instance.batch_size == 2
-    assert udtf_instance.buffer[0] == "http://image1.jpg"
+    assert udtf_instance.buffer[0] == ("http://image1.jpg", "fake-token")
     
     # Second item - should trigger processing
     row2 = Row(url="http://image2.jpg")
-    with patch('requests.post') as mock_post:
+    
+    with patch('requests.post') as mock_post, \
+         patch('requests.get') as mock_get:
+        
+        # Mock image download
+        mock_img_response = Mock()
+        mock_img_response.content = b"fake-image-data"
+        mock_img_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_img_response
+
+        # Mock API response (OpenAI format)
         mock_response = Mock()
-        mock_response.json.return_value = {'predictions': ['caption1', 'caption2']}
+        mock_response.json.return_value = {
+            'choices': [{
+                'message': {
+                    'content': 'caption1\ncaption2'
+                }
+            }]
+        }
         mock_response.raise_for_status.return_value = None
         mock_post.return_value = mock_response
         
@@ -35,7 +51,10 @@ def test_eval_buffering(udtf_instance):
         assert len(udtf_instance.buffer) == 0 # Buffer should be cleared
         
         mock_post.assert_called_once()
-        assert mock_post.call_args[1]['json']['inputs'] == ["http://image1.jpg", "http://image2.jpg"]
+        # Verify payload structure
+        call_args = mock_post.call_args[1]
+        assert 'messages' in call_args['json']
+        assert len(call_args['json']['messages'][0]['content']) == 3 # 1 text + 2 images
 
 def test_terminate_flushes_buffer(udtf_instance):
     # Test that terminate processes remaining items
@@ -45,9 +64,22 @@ def test_terminate_flushes_buffer(udtf_instance):
     list(udtf_instance.eval(row1, 2, "fake-token", "http://fake-endpoint"))
     assert len(udtf_instance.buffer) == 1
     
-    with patch('requests.post') as mock_post:
+    with patch('requests.post') as mock_post, \
+         patch('requests.get') as mock_get:
+         
+        mock_img_response = Mock()
+        mock_img_response.content = b"fake-image-data"
+        mock_img_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_img_response
+
         mock_response = Mock()
-        mock_response.json.return_value = {'predictions': ['caption1']}
+        mock_response.json.return_value = {
+            'choices': [{
+                'message': {
+                    'content': 'caption1'
+                }
+            }]
+        }
         mock_response.raise_for_status.return_value = None
         mock_post.return_value = mock_response
         
@@ -64,14 +96,20 @@ def test_error_handling(udtf_instance):
     
     # Initialize params
     udtf_instance.batch_size = 2
-    udtf_instance.token = "t"
-    udtf_instance.endpoint = "e"
+    # Buffer is set manually below
+    
+    with patch('requests.post') as mock_post, \
+         patch('requests.get') as mock_get:
+        
+        mock_img_response = Mock()
+        mock_img_response.content = b"fake-image-data"
+        mock_img_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_img_response
 
-    with patch('requests.post') as mock_post:
         mock_post.side_effect = Exception("API Error")
         
         # Trigger batch processing immediately by setting buffer manually
-        udtf_instance.buffer = ["http://image1.jpg", "http://image2.jpg"]
+        udtf_instance.buffer = [("http://image1.jpg", "t"), ("http://image2.jpg", "t")]
         
         results = list(udtf_instance.process_batch())
         

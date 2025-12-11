@@ -52,3 +52,60 @@ spark.sql("""
     )
 """).show()
 ```
+
+## Development
+
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management and packaging.
+
+### Running Tests
+
+To run the test suite:
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run specific test file
+uv run pytest tests/test_image_caption.py
+```
+
+### Adding Dependencies
+
+To add a new runtime dependency:
+
+```bash
+uv add package_name
+```
+
+To add a development dependency:
+
+```bash
+uv add --dev package_name
+```
+
+### Bumping Version
+
+Currently, versioning is managed manually in `pyproject.toml`.
+
+1. Open `pyproject.toml`.
+2. Update the `version` field under `[project]`:
+   ```toml
+   [project]
+   version = "0.1.1"  # Update this value
+   ```
+
+### Publishing to PyPI
+
+To build and publish the package to PyPI:
+
+1. **Build the package:**
+   ```bash
+   uv build
+   ```
+   This will create distributions in the `dist/` directory.
+
+2. **Publish to PyPI:**
+   ```bash
+   uv publish
+   ```
+   Note: You will need to configure your PyPI credentials (API token) either via environment variables (`UV_PUBLISH_TOKEN`) or following `uv`'s authentication documentation.

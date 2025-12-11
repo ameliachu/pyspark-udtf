@@ -43,7 +43,7 @@ def test_batch_image_caption_integration(spark):
     class MockedBatchInferenceImageCaption(BatchInferenceImageCaptionLogic):
         def process_batch(self) -> Iterator[Row]:
             # Simulate API response
-            for i, url in enumerate(self.buffer):
+            for i, (url, _) in enumerate(self.buffer):
                 yield Row(caption=f"caption for {url}")
             self.buffer = []
 
