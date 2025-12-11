@@ -25,28 +25,6 @@ class MappingEngine:
     def _apply_rule(self, rule: Any, row: Any) -> Any:
         # Handle simple string mapping (shorthand for column source)
         if isinstance(rule, str):
-            # Check if it's a literal or column based on some convention?
-            # Or assume it's a literal if quoted in YAML? No, YAML parser handles quotes.
-            # To resolve ambiguity, we defined the schema:
-            # - String value in YAML is treated as a literal unless it matches a structure.
-            # Wait, design said: event_name: "Purchase" is literal.
-            # event_id: "order_id" might be ambiguous. 
-            # Let's enforce structure for columns or use a convention.
-            # REVISED DESIGN ADHERENCE:
-            # The design v2 says:
-            # event_name: "Purchase" -> Literal
-            # event_id: "order_id" -> Column reference? NO, that's ambiguous.
-            # Let's support: 
-            # simple string -> Literal
-            # dictionary with 'source' -> Column
-            # dictionary with 'value' -> Literal (explicit)
-            # dictionary with nested keys -> Recursion (for user_data, custom_data)
-            
-            # However, for custom_data: value: "amount" -> shorthand for source="amount"?
-            # Ambiguity is bad. Let's stick to:
-            # - String/Int/Float/Bool -> Literal
-            # - Dict with 'source' -> Column mapping
-            # - Dict without 'source'/'value'/'type' -> Nested object (recursion)
             return rule
 
         if isinstance(rule, dict):
