@@ -47,6 +47,27 @@ spark.sql("""
 """).show()
 ```
 
+#### Arrow-Optimized Version (PySpark 4.2+)
+
+If you are using PySpark 4.2 or later, you can use the Arrow-optimized version of the UDTF for better performance.
+
+```python
+try:
+    from pyspark_udtf.udtfs import ArrowBatchInferenceImageCaption
+    spark.udtf.register("arrow_batch_image_caption", ArrowBatchInferenceImageCaption)
+    
+    # Usage is identical
+    spark.sql("""
+        SELECT * 
+        FROM arrow_batch_image_caption(
+            TABLE(SELECT url FROM images), 
+            10, 'token', 'endpoint'
+        )
+    """).show()
+except ImportError:
+    print("Arrow UDTF not available (requires PySpark 4.2+)")
+```
+
 ## Available UDTFs
 
 ### `BatchInferenceImageCaption`
@@ -64,6 +85,10 @@ Performs batch inference for image captioning.
 
 **Output:**
 - A struct containing the `caption` (string).
+
+### `ArrowBatchInferenceImageCaption` (PySpark 4.2+)
+
+Same as above, but uses Apache Arrow for data transfer, providing improved performance.
 
 ## Development
 

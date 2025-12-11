@@ -3,7 +3,7 @@ import base64
 from typing import Iterator, Tuple
 from pyspark.sql.functions import udtf
 from pyspark.sql.types import Row, StringType, StructType, StructField
-from ..utils.version_check import require_pyspark_version
+from ..utils.version_check import check_version_compatibility
 
 class BatchInferenceImageCaptionLogic:
     """
@@ -49,13 +49,6 @@ class BatchInferenceImageCaptionLogic:
         if self.buffer:
             yield from self.process_batch()
 
-    @require_pyspark_version("4.1")
-    def some_advanced_feature(self):
-        """
-        Placeholder for a feature that requires PySpark 4.1+.
-        """
-        pass
-
     def process_batch(self) -> Iterator[Row]:
         """
         sends a batch of images to the model serving endpoint.
@@ -99,8 +92,26 @@ class BatchInferenceImageCaptionLogic:
         finally:
             self.buffer = []
 
-# Register the UDTF
+# Standard UDTF registration (Works on PySpark 4.0+)
 BatchInferenceImageCaption = udtf(
     BatchInferenceImageCaptionLogic, 
     returnType=StructType([StructField("caption", StringType())])
 )
+
+# Optional Arrow UDTF registration (Requires PySpark 4.2+)
+try:
+    from pyspark.sql.functions import arrow_udtf
+    ArrowBatchInferenceImageCaption = arrow_udtf(
+        BatchInferenceImageCaptionLogic, 
+        returnType=StructType([StructField("caption", StringType())])
+    )
+except ImportError:
+    # If arrow_udtf is missing, check if it's due to old PySpark version
+    if not check_version_compatibility("4.2"):
+        # We silently skip defining the Arrow variant on older versions
+        # to maintain compatibility with PySpark 4.0/4.1.
+        # If we were strictly enforcing this feature, we would raise an exception here.
+        pass
+    else:
+        # If version is >= 4.2 but import failed, re-raise
+        raise
