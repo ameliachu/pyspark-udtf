@@ -12,8 +12,14 @@ A collection of Python User-Defined Table Functions (UDTFs) for PySpark, demonst
 
 ## Installation
 
+We recommend using [uv](https://github.com/astral-sh/uv) for extremely fast package management.
+
 ```bash
-pip install pyspark-udtf
+# Install uv if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install the package
+uv pip install pyspark-udtf
 ```
 
 ## Usage
@@ -90,14 +96,46 @@ Performs batch inference for image captioning.
 
 Same as above, but uses Apache Arrow for data transfer, providing improved performance.
 
-## Development
+## Development with `uv`
 
-1. Install dependencies:
-   ```bash
-   pip install -e ".[dev]"
-   ```
+This project uses `uv` for dependency management and packaging.
 
-2. Run tests:
-   ```bash
-   pytest
-   ```
+1.  **Initialize environment**:
+    ```bash
+    uv venv
+    source .venv/bin/activate
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    uv pip install -e ".[dev]"
+    ```
+
+3.  **Run tests**:
+    ```bash
+    pytest
+    ```
+
+4.  **Manage Dependencies**:
+    To add a new dependency:
+    ```bash
+    # Add to pyproject.toml manually, then:
+    uv pip install -e .
+    ```
+
+5.  **Build and Publish**:
+    
+    To build the package:
+    ```bash
+    uv build
+    ```
+    
+    To publish to PyPI:
+    ```bash
+    # Ensure you have your PyPI token available
+    uv publish
+    ```
+
+    To bump the version:
+    1. Update `version` in `pyproject.toml`.
+    2. Commit the change.
