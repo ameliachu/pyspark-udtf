@@ -8,7 +8,8 @@ dependencies = [
     "pyspark>=4.0.0",
     "requests",
     "pandas",
-    "pyarrow"
+    "pyarrow",
+    "PyYAML"
 ]
 
 [project.optional-dependencies]
