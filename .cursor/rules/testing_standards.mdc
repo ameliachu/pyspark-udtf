@@ -1,0 +1,20 @@
+---
+description: Testing standards for PySpark UDTFs
+globs: tests/**/*.py
+alwaysApply: true
+---
+
+# Testing Standards
+
+## Frameworks
+- Use `pytest` for all tests.
+- Use `unittest.mock` for mocking external dependencies (e.g., `requests`).
+
+## UDTF Testing
+- Test the UDTF logic class directly when possible to avoid Spark overhead.
+- Use `pyspark.sql.types.Row` to simulate input rows.
+- Test buffering logic (e.g., `eval` should buffer, `terminate` should flush).
+- Test error handling (ensure exceptions are caught and reported in the output schema if appropriate).
+
+## Fixtures
+- Use `pytest.fixture` to create UDTF instances.

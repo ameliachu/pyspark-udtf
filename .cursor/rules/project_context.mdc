@@ -1,0 +1,33 @@
+---
+description: Project context and coding standards for PySpark UDTF
+globs: **/*.py, **/*.toml, **/*.md
+alwaysApply: true
+---
+
+# Project Context
+
+This repository contains PySpark User-Defined Table Functions (UDTFs).
+It uses `uv` for dependency management and `pytest` for testing.
+
+## Tech Stack
+- Python >= 3.10
+- PySpark >= 4.0.0
+- Build System: hatchling (via uv)
+
+## Directory Structure
+- `src/pyspark_udtf/`: Source code
+  - `udtfs/`: UDTF implementations
+  - `utils/`: Utility functions
+- `tests/`: Pytest tests
+- `docs/`: Documentation and design documents
+
+## Development Workflow
+- Install dependencies: `uv add <package>`
+- Run tests: `uv run pytest`
+- Build: `uv build`
+
+## Coding Standards
+- Use type hints where possible.
+- Follow PySpark UDTF conventions (analyze method, eval method).
+- Ensure tests cover new UDTFs.
+- Prefer using `TABLE` argument for UDTFs (processing entire partitions/tables) over `LATERAL` (row-by-row invocation) when possible.
