@@ -57,6 +57,12 @@ spark.sql("""
 """).show()
 ```
 
+## Documentation
+
+For more detailed documentation, including design docs and guides for Unity Catalog integration, see the [docs/](docs/) directory.
+
+- [Unity Catalog Guide](docs/unity_catalog_udtf.md)
+
 ## Development
 
 This project uses [uv](https://docs.astral.sh/uv/) for dependency management and packaging.
