@@ -4,6 +4,18 @@ version = "0.1.0"
 description = "A collection of PySpark User-Defined Table Functions (UDTFs)"
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "Apache-2.0" }  # Recommended for open source, or change to MIT
+authors = [
+    { name = "Allison Wang", email = "allisowang@apache.org" }
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
     "pyspark>=4.0.0",
     "requests",
@@ -11,6 +23,10 @@ dependencies = [
     "pyarrow",
     "PyYAML"
 ]
+
+[project.urls]
+Repository = "https://github.com/allisonwang-db/pyspark-udtf"
+Issues = "https://github.com/allisonwang-db/pyspark-udtf/issues"
 
 [project.optional-dependencies]
 dev = [
