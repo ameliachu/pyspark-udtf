@@ -118,9 +118,10 @@ class MetaCAPILogic:
         params = {"access_token": self.current_access_token}
         
         payload = {
-            "data": self.buffer
+            "data": self.buffer,
+            "partner_agent": "databricks"
         }
-        
+
         if self.current_test_event_code:
             payload["test_event_code"] = self.current_test_event_code
 
