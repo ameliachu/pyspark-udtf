@@ -2,6 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/pyspark-udtf.svg)](https://pypi.org/project/pyspark-udtf/)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 
 A collection of Python User-Defined Table Functions (UDTFs) for PySpark, demonstrating how to leverage UDTFs for complex data processing tasks.
@@ -112,6 +113,16 @@ uv run pytest
 
 # Run specific test file
 uv run pytest tests/test_image_caption.py
+```
+
+### Linting
+
+This project uses [Ruff](https://docs.astral.sh/ruff/) for linting and formatting. Install dev dependencies, then run:
+
+```bash
+uv sync --extra dev   # install ruff
+uv run ruff check .   # lint
+uv run ruff format .  # format
 ```
 
 ### Adding Dependencies
