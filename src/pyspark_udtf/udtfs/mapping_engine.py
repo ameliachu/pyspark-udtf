@@ -1,13 +1,15 @@
 import hashlib
+from datetime import date, datetime
+from typing import Any
+
 import yaml
-from datetime import datetime, date
-from typing import Any, Dict, List, Union
+
 
 class MappingEngine:
     def __init__(self, mapping_yaml: str):
         self.mapping = yaml.safe_load(mapping_yaml)
-        
-    def transform_row(self, row: Any) -> Dict[str, Any]:
+
+    def transform_row(self, row: Any) -> dict[str, Any]:
         """
         Transforms a Spark Row into a Meta CAPI event dictionary based on the YAML mapping.
         """
@@ -16,7 +18,7 @@ class MappingEngine:
             # Skip special keys if we add metadata later
             if field in ['version', 'meta']:
                 continue
-                
+
             value = self._apply_rule(rule, row)
             if value is not None:
                 event[field] = value
@@ -36,18 +38,18 @@ class MappingEngine:
             if 'source' in rule:
                 col_name = rule['source']
                 val = getattr(row, col_name)
-                
+
                 # Apply transforms
                 if 'transform' in rule:
                     transforms = rule['transform']
                     if isinstance(transforms, str):
                         transforms = [transforms]
-                    
+
                     for t in transforms:
                         val = self._apply_transform(t, val)
-                
+
                 return val
-            
+
             # Nested Object (e.g., user_data, custom_data)
             nested_obj = {}
             for k, v in rule.items():
@@ -66,17 +68,17 @@ class MappingEngine:
             if not isinstance(value, str):
                 value = str(value)
             return hashlib.sha256(value.encode('utf-8')).hexdigest()
-            
+
         elif transform_name == 'normalize':
             if isinstance(value, str):
                 return value.strip().lower()
             return value
-            
+
         elif transform_name == 'normalize_email':
             if isinstance(value, str):
                 return value.strip().lower()
             return value
-            
+
         elif transform_name == 'normalize_phone':
             # Remove symbols, keep numbers
             if isinstance(value, str):
@@ -93,21 +95,21 @@ class MappingEngine:
                 # Try parsing ISO string?
                 # Simple fallback: return as is if int/float
                 return int(value)
-            except:
+            except Exception:
                 return value
 
         elif transform_name == 'cast_int':
             try:
                 return int(value)
-            except:
+            except Exception:
                 return value
-        
+
         elif transform_name == 'cast_float':
             try:
                 return float(value)
-            except:
+            except Exception:
                 return value
-                
+
         elif transform_name == 'cast_string':
             return str(value)
 

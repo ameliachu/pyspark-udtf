@@ -1,5 +1,7 @@
 from pyspark.sql import SparkSession
+
 from pyspark_udtf.udtfs.meta_capi import WriteToMetaCAPI
+
 
 def main():
     spark = SparkSession.builder \
@@ -29,7 +31,7 @@ def main():
       source: "created_at"
       transform: "to_epoch"
     action_source: "website"
-    
+
     user_data:
       em:
         source: "email"
@@ -37,12 +39,12 @@ def main():
       ph:
         source: "phone"
         transform: ["normalize_phone", "sha256"]
-        
+
     custom_data:
-      value: 
+      value:
         source: "amount"
         transform: "cast_float"
-      currency: 
+      currency:
         source: "currency"
       order_id:
         source: "order_id"
@@ -52,9 +54,9 @@ def main():
     # Note: Replace 'YOUR_PIXEL_ID' and 'YOUR_ACCESS_TOKEN' with real values
     # We use a dummy test code 'TEST1234'
     print("Running Meta CAPI UDTF...")
-    
+
     query = f"""
-        SELECT * 
+        SELECT *
         FROM write_to_meta_capi(
             TABLE(purchases),
             '1234567890',     -- pixel_id
@@ -63,7 +65,7 @@ def main():
             'TEST1234'        -- test_event_code
         )
     """
-    
+
     result = spark.sql(query)
     result.show(truncate=False)
 
