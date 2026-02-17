@@ -1,9 +1,22 @@
 import json
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
 import requests
 from pyspark.sql.functions import udtf
 from pyspark.sql.types import Row
 from typing import Optional, Any
+
 from .mapping_engine import MappingEngine
+
+
+def _partner_agent() -> str:
+    try:
+        return f"pyspark-udtf/{_pkg_version('pyspark-udtf')}"
+    except PackageNotFoundError:
+        return "pyspark-udtf/unknown"
+
+
+# Resolve once at import; used in CAPI payload.
+_PARTNER_AGENT = _partner_agent()
 
 class MetaCAPILogic:
     """
@@ -119,7 +132,7 @@ class MetaCAPILogic:
         
         payload = {
             "data": self.buffer,
-            "partner_agent": "databricks"
+            "partner_agent": _PARTNER_AGENT
         }
 
         if self.current_test_event_code:
