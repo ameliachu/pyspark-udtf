@@ -175,3 +175,24 @@ To build and publish the package to PyPI:
    uv publish
    ```
    Note: You will need to configure your PyPI credentials (API token) either via environment variables (`UV_PUBLISH_TOKEN`) or following `uv`'s authentication documentation.
+
+## Cursor Skills
+
+This repository includes Cursor skills to help with common development tasks. Skills are available in `.cursor/skills/`.
+
+### create-udtf
+
+Use this skill when you want to **create, write, or generate a new PySpark UDTF**. It guides you through:
+
+1. **Analyze requirements** – Determine inputs, outputs, and external dependencies
+2. **Design** – Create a design doc in `docs/design/<udtf_name>.md` (required for all UDTFs)
+3. **Implementation** – Implement the UDTF in `src/pyspark_udtf/udtfs/<udtf_name>.py`
+4. **Registration** – Add the UDTF to `src/pyspark_udtf/udtfs/__init__.py`
+5. **Testing** – Add tests in `tests/test_<udtf_name>.py`
+
+**When to use:** Ask Cursor to create a new UDTF, or say "use the create-udtf skill" when describing the UDTF you want to build.
+
+**Reference implementations:**
+
+- Simple UDTF: `src/pyspark_udtf/udtfs/fuzzy_match.py`
+- Complex UDTF (buffering, external API): `src/pyspark_udtf/udtfs/meta_capi.py`
