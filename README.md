@@ -1,28 +1,51 @@
 # PySpark UDTF Examples
 
+[![PyPI](https://img.shields.io/pypi/v/pyspark-udtf.svg)](https://pypi.org/project/pyspark-udtf/)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+
+
 A collection of Python User-Defined Table Functions (UDTFs) for PySpark, demonstrating how to leverage UDTFs for complex data processing tasks.
-
-## Requirements
-
-- Python >= 3.10
-- PySpark >= 4.0.0
-- requests
-- pandas
-- pyarrow
 
 ## Installation
 
-We recommend using [uv](https://github.com/astral-sh/uv) for extremely fast package management.
+You can quickly install the package using pip:
 
 ```bash
-# Install uv if you haven't already
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install the package
-uv add pyspark-udtf
+pip install pyspark-udtf
 ```
 
 ## Usage
+
+### Fuzzy Matching (Quick Start)
+
+This UDTF demonstrates how to use Python's standard library `difflib` to perform fuzzy string matching in PySpark. It takes a target string and a list of candidates, returning the best match and a similarity score.
+
+```python
+from pyspark.sql import SparkSession
+from pyspark_udtf.udtfs import FuzzyMatch
+
+spark = SparkSession.builder.getOrCreate()
+
+# Register the UDTF
+spark.udtf.register("fuzzy_match", FuzzyMatch)
+
+# Create a sample dataframe with typos
+data = [
+    ("aple", ["apple", "banana", "orange"]),
+    ("bananna", ["apple", "banana", "orange"]),
+    ("orange", ["apple", "banana", "orange"]),
+    ("grape", ["apple", "banana", "orange"]) 
+]
+df = spark.createDataFrame(data, ["typo", "candidates"])
+
+# Use the UDTF in SQL
+df.createOrReplaceTempView("typos")
+
+spark.sql("""
+    SELECT * 
+    FROM fuzzy_match(TABLE(SELECT typo, candidates FROM typos))
+""").show()
+```
 
 ### Batch Inference Image Captioning
 
@@ -53,9 +76,31 @@ spark.sql("""
 """).show()
 ```
 
+## Requirements
+
+- Python >= 3.10
+- PySpark >= 4.0.0
+- requests
+- pandas
+- pyarrow
+
+## Documentation
+
+For more detailed documentation, including design docs and guides for Unity Catalog integration, see the [docs/](docs/) directory.
+
+- [Unity Catalog Guide](docs/unity_catalog_udtf.md)
+
 ## Development
 
-This project uses [uv](https://docs.astral.sh/uv/) for dependency management and packaging.
+We recommend using [uv](https://github.com/astral-sh/uv) for extremely fast package management.
+
+```bash
+# Install uv if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install the package
+uv add pyspark-udtf
+```
 
 ### Running Tests
 
@@ -85,7 +130,17 @@ uv add --dev package_name
 
 ### Bumping Version
 
-Currently, versioning is managed manually in `pyproject.toml`.
+You can bump the version automatically using `uv` (requires uv >= 0.7.0):
+
+```bash
+# Bump patch version (0.1.0 -> 0.1.1)
+uv version --bump patch
+
+# Bump minor version (0.1.0 -> 0.2.0)
+uv version --bump minor
+```
+
+Alternatively, you can manually update `pyproject.toml`:
 
 1. Open `pyproject.toml`.
 2. Update the `version` field under `[project]`:

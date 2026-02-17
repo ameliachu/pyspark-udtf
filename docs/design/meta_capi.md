@@ -76,7 +76,7 @@ custom_data:
     user_data:
       em:
         source: "email_raw"
-        transform: ["normalize", "sha256"] # Applied in order
+        transform: ["normalize_email", "sha256"] # Applied in order
     
     event_time:
       source: "timestamp"
@@ -86,9 +86,12 @@ custom_data:
 ### Supported Transformations
 *   `sha256`: Computes SHA-256 hash (hex string).
 *   `normalize`: Trims whitespace and converts to lowercase.
+*   `normalize_email`: Trims whitespace and converts to lowercase (alias for normalize).
+*   `normalize_phone`: Removes all non-digit characters.
 *   `to_epoch`: Converts Spark Timestamp/Date or ISO string to Unix epoch integer.
 *   `cast_int`: Casts to integer.
 *   `cast_float`: Casts to float.
+*   `cast_string`: Casts to string.
 
 ## Example Usage
 
@@ -108,7 +111,7 @@ action_source: "website"
 user_data:
   em:
     source: "email"
-    transform: ["normalize", "sha256"]
+    transform: ["normalize_email", "sha256"]
 
 custom_data:
   value: 
@@ -121,7 +124,10 @@ custom_data:
 
 ### 3. Spark SQL Call
 ```python
+from pyspark.sql import SparkSession
 from pyspark_udtf.udtfs.meta_capi import WriteToMetaCAPI
+
+spark = SparkSession.builder.getOrCreate()
 spark.udtf.register("write_to_meta_capi", WriteToMetaCAPI)
 
 # Note: YAML must be passed as a single string literal.
@@ -130,38 +136,58 @@ event_name: "Purchase"
 event_time:
   source: "created_at"
   transform: "to_epoch"
-...
+action_source: "website"
+user_data:
+  em:
+    source: "email"
+    transform: ["normalize_email", "sha256"]
+custom_data:
+  value: 
+    source: "amount"
+    transform: "cast_float"
+  currency: "currency"
+  order_id:
+    source: "order_id"
 """
+
+# Create dummy data
+data = [
+    ("O-101", "alice@example.com", 150.0, "USD", "2023-10-27 10:00:00"),
+    ("O-102", "bob@example.com", 200.0, "USD", "2023-10-27 10:05:00")
+]
+columns = ["order_id", "email", "amount", "currency", "created_at"]
+df = spark.createDataFrame(data, columns)
+df.createOrReplaceTempView("purchases")
 
 spark.sql(f"""
     SELECT * 
     FROM write_to_meta_capi(
         TABLE(purchases),
-        '1234567890',
-        'EAAB...',
-        '{yaml_mapping}',
-        'TEST1234'
+        '1234567890',     -- pixel_id
+        'EAAB...',        -- access_token
+        '{yaml_mapping}', -- mapping_yaml
+        'TEST1234'        -- test_event_code
     )
-""")
+""").show()
 ```
 
 ## Internal Logic Updates
 
 1.  **Initialization (`__init__` / `eval` start)**:
-    -   Parse `mapping_yaml` (using `PyYAML` or internal parser).
-    -   Validate that referenced columns exist in the input row.
-
+    -   Parse `mapping_yaml` (using `PyYAML`).
+    
 2.  **Row Processing (`eval`)**:
     -   Iterate through the mapping configuration.
     -   Resolve values from `row`.
     -   Apply transformations.
     -   Construct the dictionary payload.
     -   Buffer the result.
+    -   **Validation**: Checks for missing columns occur at runtime during row transformation (will raise error if column missing).
 
 3.  **Dependencies**:
     -   Add `PyYAML` to `pyproject.toml`.
 
-## Output Schema (Unchanged)
+## Output Schema
 | status | events_received | events_failed | fbtrace_id | error_message |
 | :--- | :--- | :--- | :--- | :--- |
 | string | int | int | string | string |

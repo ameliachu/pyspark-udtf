@@ -66,6 +66,31 @@ class MetaCAPILogic:
         )
     ''')
     ```
+
+    Unity Catalog Registration:
+
+    ```sql
+    CREATE OR REPLACE FUNCTION meta_capi(
+      data TABLE, 
+      pixel_id STRING, 
+      access_token STRING, 
+      mapping_yaml STRING, 
+      test_event_code STRING DEFAULT NULL
+    )
+    RETURNS TABLE (
+      status STRING, 
+      events_received INT, 
+      events_failed INT, 
+      fbtrace_id STRING, 
+      error_message STRING
+    )
+    LANGUAGE PYTHON
+    HANDLER 'MetaCAPILogic'
+    ENVIRONMENT (dependencies = '["pyspark-udtf"]', environment_version = 'None')
+    AS $$
+    from pyspark_udtf.udtfs.meta_capi import MetaCAPILogic
+    $$;
+    ```
     """
 
     def __init__(self):
