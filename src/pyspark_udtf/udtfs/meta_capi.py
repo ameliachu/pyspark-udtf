@@ -1,9 +1,22 @@
 import json
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
 import requests
 from pyspark.sql.functions import udtf
 from pyspark.sql.types import Row
 from typing import Optional, Any
+
 from .mapping_engine import MappingEngine
+
+
+def _partner_agent() -> str:
+    try:
+        return f"pyspark-udtf/{_pkg_version('pyspark-udtf')}"
+    except PackageNotFoundError:
+        return "pyspark-udtf/unknown"
+
+
+# Resolve once at import; used in CAPI payload.
+_PARTNER_AGENT = _partner_agent()
 
 class MetaCAPILogic:
     """
@@ -118,6 +131,7 @@ class MetaCAPILogic:
         try:
             # Use MappingEngine to transform row
             event_data = self.mapping_engine.transform_row(row)
+            
             if event_data:
                 self.buffer.append(event_data)
         except Exception as e:
@@ -142,14 +156,16 @@ class MetaCAPILogic:
         params = {"access_token": self.current_access_token}
         
         payload = {
-            "data": self.buffer
+            "data": self.buffer,
+            "partner_agent": _PARTNER_AGENT
         }
-        
+
         if self.current_test_event_code:
             payload["test_event_code"] = self.current_test_event_code
 
         try:
             response = requests.post(url, params=params, json=payload)
+            
             res_json = response.json()
             
             if response.status_code == 200:
@@ -162,8 +178,21 @@ class MetaCAPILogic:
                 # API returned an error
                 error_data = res_json.get("error", {})
                 error_msg = error_data.get("message", json.dumps(error_data))
+                error_user_title = error_data.get("error_user_title")
+                error_user_msg = error_data.get("error_user_msg")
+                error_subcode = error_data.get("error_subcode")
                 fbtrace_id = res_json.get("fbtrace_id") or error_data.get("fbtrace_id")
-                yield "failed", 0, current_batch_size, fbtrace_id, error_msg
+                
+                # Build detailed error message
+                detailed_error_msg = f"[{response.status_code}] {error_msg}"
+                if error_user_title:
+                    detailed_error_msg += f": {error_user_title}"
+                if error_user_msg:
+                    detailed_error_msg += f" - {error_user_msg}"
+                if error_subcode:
+                    detailed_error_msg += f" | Subcode: {error_subcode}"
+                
+                yield "failed", 0, current_batch_size, fbtrace_id, detailed_error_msg
                 
         except Exception as e:
             # Network or other exception
@@ -178,3 +207,4 @@ class WriteToMetaCAPI(MetaCAPILogic):
     Spark UDTF wrapper for MetaCAPILogic.
     """
     pass
+
