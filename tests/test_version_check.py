@@ -1,7 +1,8 @@
+
 import pytest
-from unittest.mock import MagicMock, patch
-import sys
-from pyspark_udtf.utils.version_check import require_pyspark_version, check_version_compatibility
+
+from pyspark_udtf.utils.version_check import check_version_compatibility, require_pyspark_version
+
 
 def test_require_pyspark_version_function():
     # Helper to wrap the check in a function for testing
@@ -10,11 +11,11 @@ def test_require_pyspark_version_function():
         return True
 
     # conftest mocks pyspark version to "4.0.0"
-    
+
     # These should pass (return True)
     assert use_feature("3.5") is True
     assert use_feature("4.0") is True
-    
+
     # This should fail
     with pytest.raises(ImportError) as excinfo:
         use_feature("4.1")

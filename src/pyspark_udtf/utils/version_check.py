@@ -1,6 +1,7 @@
+
 import pyspark
 from packaging import version
-import warnings
+
 
 def get_pyspark_version():
     return version.parse(pyspark.__version__)
@@ -9,7 +10,7 @@ def require_pyspark_version(min_version: str):
     """
     Checks if the installed PySpark version meets the requirement.
     Raises an ImportError if the version is insufficient.
-    
+
     Args:
         min_version (str): The minimum required PySpark version (e.g. "4.0").
     """
