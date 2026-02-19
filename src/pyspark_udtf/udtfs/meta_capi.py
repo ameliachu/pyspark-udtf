@@ -10,7 +10,7 @@ from .mapping_engine import MappingEngine
 
 def _partner_agent() -> str:
     try:
-        return f"pyspark-udtf/{_pkg_version('pyspark-udtf')}"
+        return f"databricks-pyspark-udtf/{_pkg_version('pyspark-udtf')}"
     except PackageNotFoundError:
         return "pyspark-udtf/unknown"
 
